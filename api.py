@@ -1,17 +1,18 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from flask import Flask, request, jsonify
 from main import singularity_crew
 
-app = FastAPI(title="Singularity Bot API")
+app = Flask(__name__)
 
-class UserRequest(BaseModel):
-    user_input: str
-
-@app.get("/")
+@app.route("/")
 def health_check():
-    return {"status": "Singularity Bot is live 🚀"}
+    return jsonify({"status": "Singularity Bot is live 🚀"})
 
-@app.post("/run")
-def run_crew(request: UserRequest):
-    result = singularity_crew.kickoff(inputs={"user_input": request.user_input})
-    return {"result": str(result)}
+@app.route("/run", methods=["POST"])
+def run_crew():
+    data = request.get_json()
+    user_input = data.get("user_input", "")
+    result = singularity_crew.kickoff(inputs={"user_input": user_input})
+    return jsonify({"result": str(result)})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
