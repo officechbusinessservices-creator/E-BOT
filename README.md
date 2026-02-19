@@ -1,93 +1,89 @@
-# E-BOT Documentation
+# Deployment Guide for E-BOT
 
-## Deployment Guide
+## Architecture Overview
+```
+        +---------------+
+        |   User       |
+        +---------------+
+               |
+               V
+        +---------------+
+        |  Frontend    |
+        +---------------+
+               |
+               V
+        +---------------+ 
+        |   Backend     | 
+        +---------------+  
+               |
+               V
+        +---------------+
+        |  Database     |
+        +---------------+
+```
 
-To deploy the E-BOT application, follow these steps:
+## Quick Start Instructions
 1. Clone the repository:
    ```bash
    git clone https://github.com/officechbusinessservices-creator/E-BOT.git
    ```
-2. Navigate to the project directory:
+2. Navigate to the project folder:
    ```bash
    cd E-BOT
    ```
-3. Install the required dependencies:
+3. Install dependencies:
    ```bash
    npm install
    ```
-4. Build the project:
-   ```bash
-   npm run build
-   ```
-5. Configure environment variables in a `.env` file. Ensure to include:
-   - `API_URL`
-   - `DB_CONNECTION_STRING`
-6. Start the application:
+4. Start the application:
    ```bash
    npm start
    ```
 
-## Architecture Overview
+## Environment Configuration
+Create a `.env` file in the root directory and include the following variables:
+```
+DATABASE_URL=your_database_url
+LLM_PROVIDER=your_llm_provider
+API_KEY=your_api_key
+```
 
-The E-BOT application is built on a microservices architecture. Key components include:
-- **Client:** The front-end web application.
-- **API Gateway:** Routes requests to microservices.
-- **Microservices:** Individual services responsible for specific functionalities.
-- **Database:** Centralized data storage.
+## LLM Provider Setup Options
+- Default Provider: OpenAI
+- Alternative Provider: Hugging Face
 
-### Flow Diagram
-![Architecture Diagram](link-to-architecture-diagram)
+## Project Structure
+```
+E-BOT/
+├── src/
+│   ├── components/
+│   ├── config/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   └── services/
+├── tests/
+└── README.md
+```
 
-## Setup Instructions
-
-1. Ensure that you have Node.js and npm installed.
-2. Clone the repository (as shown in the deployment guide).
-3. Set up your database and adjust settings in the `.env` file.
-4. Run migrations and seed the database:
-   ```bash
-   npm run migrate
-   npm run seed
-   ```
-5. Verify that the application is running on your local environment.
+## Render Deployment Steps
+1. Log in to your Render account.
+2. Create a new Web Service.
+3. Select the repository for E-BOT.
+4. Set the environment variables according to your `.env` file.
+5. Click on "Create Web Service" to deploy.
 
 ## API Documentation
+- **GET /api/data**: Fetch data.
+- **POST /api/data**: Submit data.
 
-### Endpoints
+## Troubleshooting Guide
+- **Issue:** Unable to connect to database.
+  **Solution:** Verify the `DATABASE_URL` is correct.
 
-| Method | Endpoint                 | Description             |
-|--------|--------------------------|-------------------------|
-| GET    | `/api/v1/users`          | Retrieve user data      |
-| POST   | `/api/v1/users`          | Create a new user       |
-| GET    | `/api/v1/users/{id}`     | Get user by ID          |
-| PATCH  | `/api/v1/users/{id}`     | Update user by ID       |
-| DELETE | `/api/v1/users/{id}`     | Delete user by ID       |
-
-### Sample Request
-```json
-{
-    "username": "john_doe",
-    "email": "john@example.com"
-}
-```
-
-### Sample Response
-```json
-{
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
-}
-```
-
-## Troubleshooting
-
-### Common Issues
-- **Error 404:** Make sure the API endpoint is correct.
-- **Database Connection Failure:** Verify your `.env` configuration and database status.
-- **Dependency Issues:** Ensure all dependencies are correctly installed with `npm install`.
-
-### Additional Resources
-- Check the project's [GitHub issues](https://github.com/officechbusinessservices-creator/E-BOT/issues) for known bugs and solutions.
-- Visit the [Node.js documentation](https://nodejs.org/en/docs/) for Node.js related issues.
+## Security Best Practices
+- Use environment variables for sensitive data.
+- Regularly update dependencies to patch vulnerabilities.
 
 ---
+*For more information, refer to the official documentation.*
