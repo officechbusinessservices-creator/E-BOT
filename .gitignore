@@ -1,0 +1,15 @@
+# Node
+node_modules/
+node_modules.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.env
+venv/
+.venv/
+
+# Render
+.render-buildpacks.json
