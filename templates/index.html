@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Singularity Bot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      padding: 18px 24px;
+      background: #111;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header .subtitle {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    #chat-container {
+      flex: 1;
+      width: 100%;
+      max-width: 780px;
+      overflow-y: auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 90%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.bot  { align-self: flex-start; }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .message.user .avatar { background: #3b82f6; }
+    .message.bot  .avatar { background: #a855f7; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message.user .bubble {
+      background: #1e3a5f;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.bot .bubble {
+      background: #1a1a2e;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #2a2a4a;
+    }
+
+    .typing .bubble {
+      color: #888;
+      font-style: italic;
+    }
+
+    #input-area {
+      width: 100%;
+      max-width: 780px;
+      padding: 16px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    #user-input:focus { border-color: #a855f7; }
+
+    #send-btn {
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    #send-btn:hover { opacity: 0.85; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">⚡ Singularity Bot</div>
+    <div class="subtitle">Powered by CrewAI · Devin X + Claude Wordsmith</div>
+  </div>
+</header>
+
+<div id="chat-container">
+  <div class="message bot">
+    <div class="avatar">🤖</div>
+    <div class="bubble">Hey! I'm Singularity Bot. Ask me to build code, write copy, or anything else. What do you need?</div>
+  </div>
+</div>
+
+<div id="input-area">
+  <input id="user-input" type="text" placeholder="Ask me anything... e.g. Build a Python scraper" autocomplete="off" />
+  <button id="send-btn" onclick="sendMessage()">Send ➤</button>
+</div>
+
+<script>
+  const chatContainer = document.getElementById('chat-container');
+  const userInput = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  function appendMessage(role, text) {
+    const msg = document.createElement('div');
+    msg.className = `message ${role}`;
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = role === 'user' ? '🧑' : '🤖';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return msg;
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    appendMessage('user', text);
+    userInput.value = '';
+    sendBtn.disabled = true;
+
+    const typing = appendMessage('bot', '⏳ Thinking...');
+    typing.classList.add('typing');
+
+    try {
+      const res = await fetch(`/chat?message=${encodeURIComponent(text)}`);
+      const data = await res.json();
+      typing.remove();
+      appendMessage('bot', data.response || data.error || 'Something went wrong.');
+    } catch (err) {
+      typing.remove();
+      appendMessage('bot', '❌ Error connecting to the bot. Please try again.');
+    } finally {
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+  }
+</script>
+
+</body>
+</html>
