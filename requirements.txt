@@ -34,9 +34,9 @@ Jinja2==3.1.6
 jiter==0.13.0
 jsonpatch==1.33
 jsonpointer==3.0.0
-langchain==0.1.0
-langchain-community==0.0.20
-langchain-core==0.1.23
+langchain>=0.1.10
+langchain-community
+langchain-core
 langchain-openai
 langsmith==0.0.87
 macholib==1.15.2
