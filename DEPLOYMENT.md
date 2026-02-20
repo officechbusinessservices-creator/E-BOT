@@ -57,17 +57,19 @@ If you prefer to set up manually:
 ### Start Command
 The correct start command is:
 ```
-gunicorn app:app
+gunicorn app:app --bind 0.0.0.0:$PORT
 ```
 
 This tells Gunicorn to:
 - Load the `app.py` file
 - Use the `app` Flask instance inside it
+- Bind to `0.0.0.0:$PORT` (Render sets `PORT=10000`)
 
 **Common Mistakes:**
 - ❌ `gunicorn your_application.wsgi` (Django syntax, not Flask)
 - ❌ `python app.py` (doesn't use Gunicorn for production)
-- ✅ `gunicorn app:app` (correct for this Flask application)
+- ❌ `gunicorn app:app` (missing port binding, defaults to 127.0.0.1:8000)
+- ✅ `gunicorn app:app --bind 0.0.0.0:$PORT` (correct for Render deployment)
 
 ### Dependencies Fixed
 
