@@ -30,7 +30,7 @@ If you prefer to set up manually:
 4. Configure the following settings:
 
    **Basic Settings:**
-   - **Name:** e-bot (or your preferred name)
+   - **Name:** e-bot-x0ot (or your preferred name)
    - **Runtime:** Python 3
    - **Region:** Choose closest to your users
    - **Branch:** main (or your preferred branch)
@@ -43,6 +43,7 @@ If you prefer to set up manually:
    **Environment Variables:**
    Click "Add Environment Variable" and add:
    - **Key:** `PYTHON_VERSION` → **Value:** `3.12.7`
+   - **Key:** `PORT` → **Value:** `10000`
    - **Key:** `OPENAI_API_KEY` → **Value:** `your-openai-api-key-here`
 
 5. Click "Create Web Service"
