@@ -38,7 +38,7 @@ langchain>=0.1.10
 langchain-community
 langchain-core
 langchain-openai
-langsmith==0.0.87
+langsmith>=0.1.17,<0.2.0
 macholib==1.15.2
 MarkupSafe==3.0.3
 marshmallow==3.26.2
