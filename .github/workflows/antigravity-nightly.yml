@@ -1,0 +1,306 @@
+name: Antigravity Nightly Engine
+
+on:
+  schedule:
+    # Run at 02:00 UTC every day
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no changes committed)"
+        required: false
+        default: "false"
+        type: boolean
+      agents:
+        description: "Comma-separated list of agents to run (leave blank for all)"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: antigravity-nightly
+  cancel-in-progress: false
+
+env:
+  DRY_RUN: ${{ inputs.dry_run || 'false' }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Morning Briefing — always runs first to capture a baseline snapshot
+  # ──────────────────────────────────────────────────────────────────────────
+  morning-briefing:
+    name: "☀️  Morning Briefing"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run Morning Briefing agent
+        run: npx tsx scripts/agents/morning-briefing.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Security — scan for vulnerabilities before making any changes
+  # ──────────────────────────────────────────────────────────────────────────
+  security:
+    name: "🔒  Security"
+    runs-on: ubuntu-latest
+    needs: morning-briefing
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Security agent
+        run: npx tsx scripts/agents/security.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Analyst — gather metrics and surface action items
+  # ──────────────────────────────────────────────────────────────────────────
+  analyst:
+    name: "📊  Analyst"
+    runs-on: ubuntu-latest
+    needs: morning-briefing
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Analyst agent
+        run: npx tsx scripts/agents/analyst.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Debugger — investigate any CI failures detected by Morning Briefing
+  # ──────────────────────────────────────────────────────────────────────────
+  debugger:
+    name: "🐛  Debugger"
+    runs-on: ubuntu-latest
+    needs: [security, analyst]
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Debugger agent
+        run: npx tsx scripts/agents/debugger.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Architect — design tasks and generate specs from todo.md
+  # ──────────────────────────────────────────────────────────────────────────
+  architect:
+    name: "🏛️  Architect"
+    runs-on: ubuntu-latest
+    needs: [security, analyst]
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Architect agent
+        run: npx tsx scripts/agents/architect.ts
+
+      - name: Commit generated specs
+        run: |
+          if [ -n "$(git status --short)" ]; then
+            git add tasks/specs/ notes/
+            git commit -m "agent(architect): generate specs [skip ci]" || true
+            git push origin HEAD
+          else
+            echo "No new specs to commit"
+          fi
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Builder — implement draft specs
+  # ──────────────────────────────────────────────────────────────────────────
+  builder:
+    name: "🔨  Builder"
+    runs-on: ubuntu-latest
+    needs: architect
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Builder agent
+        run: npx tsx scripts/agents/builder.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Reviewer — review and (if passing) merge builder PRs
+  # ──────────────────────────────────────────────────────────────────────────
+  reviewer:
+    name: "🔍  Reviewer"
+    runs-on: ubuntu-latest
+    needs: builder
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Reviewer agent
+        run: npx tsx scripts/agents/reviewer.ts
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Documentation — check and fill documentation gaps
+  # ──────────────────────────────────────────────────────────────────────────
+  documentation:
+    name: "📚  Documentation"
+    runs-on: ubuntu-latest
+    needs: [security, analyst]
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Configure git
+        run: |
+          git config user.name "Antigravity Engine"
+          git config user.email "antigravity-engine@users.noreply.github.com"
+
+      - name: Run Documentation agent
+        run: npx tsx scripts/agents/documentation.ts
