@@ -27,7 +27,16 @@
     "book:pdf:all": "npx tsx scripts/generate-book-pdf.ts --all",
     "book:pdf:convert": "npx tsx scripts/html-to-pdf.ts",
     "book:pdf:print": "npx tsx scripts/generate-book-pdf.ts --print && npx tsx scripts/html-to-pdf.ts --print",
-    "book:pdf:print:all": "npx tsx scripts/generate-book-pdf.ts --all --print && npx tsx scripts/html-to-pdf.ts --all --print"
+    "book:pdf:print:all": "npx tsx scripts/generate-book-pdf.ts --all --print && npx tsx scripts/html-to-pdf.ts --all --print",
+    "agent:architect": "npx tsx scripts/agents/architect.ts",
+    "agent:builder": "npx tsx scripts/agents/builder.ts",
+    "agent:reviewer": "npx tsx scripts/agents/reviewer.ts",
+    "agent:debugger": "npx tsx scripts/agents/debugger.ts",
+    "agent:analyst": "npx tsx scripts/agents/analyst.ts",
+    "agent:security": "npx tsx scripts/agents/security.ts",
+    "agent:documentation": "npx tsx scripts/agents/documentation.ts",
+    "agent:morning-briefing": "npx tsx scripts/agents/morning-briefing.ts",
+    "agent:all": "npm run agent:morning-briefing && npm run agent:security && npm run agent:analyst && npm run agent:architect && npm run agent:builder && npm run agent:reviewer && npm run agent:documentation && npm run agent:debugger"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

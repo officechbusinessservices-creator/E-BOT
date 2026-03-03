@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "description": "Claude agent settings for the Antigravity Autonomous Engine",
+
+  "hooks": {
+    "pre_run": [
+      {
+        "name": "load-safety-envelope",
+        "command": "node -e \"const fs=require('fs'); const raw=fs.readFileSync('.agent-safety.yml','utf8'); const paths=raw.match(/- [\\\"|']?([^'\\\"\\n]+)[\\\"|']?/g)||[]; console.log('Safety envelope loaded, entries:', paths.length);\""
+      },
+      {
+        "name": "load-lessons",
+        "command": "node -e \"const fs=require('fs'); if(fs.existsSync('notes/lessons.md')) { const l=fs.readFileSync('notes/lessons.md','utf8'); console.log('Lessons loaded, length:', l.length); }\""
+      }
+    ],
+    "post_run": [
+      {
+        "name": "append-lesson-on-error",
+        "on": "error",
+        "command": "npx tsx scripts/agents/_shared.ts appendLesson"
+      }
+    ]
+  },
+
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git checkout*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build)",
+      "Bash(npm run test*)",
+      "Bash(npx tsx scripts/agents/*)",
+      "Bash(gh pr*)",
+      "Bash(gh issue*)",
+      "Read(**)",
+      "Write(src/**)",
+      "Write(prisma/**)",
+      "Write(scripts/**)",
+      "Write(messages/**)",
+      "Write(tasks/**)",
+      "Write(notes/**)",
+      "Write(todo.md)",
+      "Write(package.json)",
+      "Write(.github/workflows/**)"
+    ],
+    "deny": [
+      "Write(.env*)",
+      "Write(*.pem)",
+      "Write(*.key)",
+      "Write(.git/**)",
+      "Write(node_modules/**)",
+      "Bash(rm -rf*)",
+      "Bash(curl * | bash*)",
+      "Bash(wget * | bash*)"
+    ]
+  },
+
+  "model": "claude-opus-4-5",
+
+  "context": {
+    "always_include": [
+      "AGENTS.md",
+      ".agent-safety.yml",
+      "notes/lessons.md",
+      "todo.md"
+    ]
+  }
+}

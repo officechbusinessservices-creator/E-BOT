@@ -1,0 +1,79 @@
+# Antigravity Autonomous Engine — Safety Envelope
+# Defines the operational constraints for all autonomous agents.
+
+version: "1.0"
+
+safety:
+  # Hard limits — agents MUST NOT exceed these
+  max_files_changed_per_run: 50
+  max_lines_added_per_run: 2000
+  max_pr_size_lines: 500
+
+  # Allowed scopes — agents may only touch these paths
+  allowed_paths:
+    - "src/**"
+    - "prisma/**"
+    - "scripts/**"
+    - "messages/**"
+    - "tasks/**"
+    - "notes/**"
+    - "todo.md"
+    - "package.json"
+    - ".github/workflows/**"
+
+  # Forbidden paths — agents MUST NEVER modify these
+  forbidden_paths:
+    - ".env*"
+    - "*.pem"
+    - "*.key"
+    - "secrets/**"
+    - ".github/agents/**"
+    - "node_modules/**"
+    - ".git/**"
+
+  # Operations that require human approval before execution
+  require_human_approval:
+    - database_schema_changes
+    - dependency_major_version_bump
+    - authentication_flow_changes
+    - production_environment_changes
+
+  # Branch safety
+  branches:
+    protected:
+      - main
+      - production
+    agents_may_push_to:
+      - "agent/**"
+      - "chore/**"
+      - "fix/**"
+      - "feat/**"
+
+  # PR constraints
+  pull_requests:
+    auto_merge_allowed: false
+    require_review_before_merge: true
+    label_prefix: "agent:"
+
+  # Secret detection — abort if any of these patterns appear in diffs
+  secret_patterns:
+    - "(?i)(api_key|secret|password|token|private_key)\\s*=\\s*['\"][^'\"]{8,}"
+    - "sk-[a-zA-Z0-9]{20,}"
+    - "ghp_[a-zA-Z0-9]{36}"
+    - "-----BEGIN.*PRIVATE KEY-----"
+
+  # Rate limiting
+  rate_limits:
+    max_github_api_calls_per_hour: 500
+    max_claude_api_calls_per_run: 100
+    max_concurrent_agents: 4
+
+notifications:
+  slack_on_error: true
+  slack_on_pr_opened: true
+  slack_on_safety_violation: true
+
+self_improvement:
+  lessons_file: "notes/lessons.md"
+  append_lesson_on_failure: true
+  review_lessons_before_run: true
